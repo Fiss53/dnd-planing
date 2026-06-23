@@ -1,21 +1,16 @@
 <template>
   <div>
-    <Filter
-      :sessions="sessions"
-      @update:tags="selectedTags = $event"
-    />
-    <div>
+    <h2>Filtres :</h2>
+    <Filter :sessions="sessions" @update:tags="selectedTags = $event" />
+    <hr>
+    <div class="weeks">
       <button @click="previousWeek"><</button>
-        Semaine du {{ formatDate(startOfWeek) }} au {{ formatDate(endOfWeek) }}
+        <h3><b>Semaine du {{ formatDate(startOfWeek) }} au {{ formatDate(endOfWeek) }}</b></h3>
       <button @click="nextWeek">></button>
     </div>
     <div class="days">
-      <button
-      v-for="day in weekDays"
-      :key="day.date"
-      :class="{ active: isSelected(day.date) }"
-      @click="selectDay(day.date)"
-      >
+      <button v-for="day in weekDays" :key="day.date" :class="{ active: isSelected(day.date) }"
+        @click="selectDay(day.date)">
         <div>
           {{ day.label }}
         </div>
@@ -33,151 +28,221 @@
         </div>
       </button>
     </div>
+    <hr>
     <h2>
-      <br>{{ selectedDayLabel  }}
+      {{ selectedDayLabel }}
     </h2>
     <div v-if="getSessionsForDay(selectedDay).length == 0">
       <p>Aucune sessions prévue :(</p>
     </div>
     <div v-else>
-      <Session
-      v-for="session in getSessionsForDay(selectedDay)"
-      :key="session.title"
+      <Session v-for="session in getSessionsForDay(selectedDay)" 
+      :key="session.id" 
+      :id="session.id"
       :title="session.title"
-      :info="session.info"
-      :game-master="session.gameMaster"
-      :image="session.image"
+      :info="session.info" 
+      :game-master="session.gameMaster" 
+      :image="session.image" 
       :dates="session.dates"
-      :tags="session.tags"
-      :special="session.special"
-      />
+      :day="session.day"
+      :frequency="session.frequency"
+      :location="session.location"
+      :time="session.time"
+      :players="session.players"
+      :max-players="session.maxPlayers"
+      :tags="session.tags" 
+      :special="session.special" 
+      :can-edit="props.canEdit"
+      :available-tags="availableTags"
+      @update="emit('update', $event)"/>
     </div>
   </div>
 </template>
 
 <script setup>
-  import { ref, computed } from "vue"
-  import Session from "./Session.vue"
-  import Filter from "./Filter.vue"
+import { ref, computed } from "vue"
+import Session from "./Session.vue"
+import Filter from "./Filter.vue"
 
-  const props = defineProps({
-    sessions: {
-      type: Array,
-      default: () => []
+const props = defineProps({
+  sessions: Array,
+  canEdit: Boolean,
+  availableTags: {
+    type: Array,
+    default: () => []
+  }
+})
+
+const dayMap = {
+  "Lundi": 1,
+  "Mardi": 2,
+  "Mercredi": 3,
+  "Jeudi": 4,
+  "Vendredi": 5,
+  "Samedi": 6,
+  "Dimanche": 0
+}
+
+const currentDate = ref(new Date())
+const selectedDay = ref(new Date())
+const selectedTags = ref([])
+
+const startOfWeek = computed(() => getStartOfWeek(currentDate.value))
+
+const endOfWeek = computed(() => {
+  const end = new Date(startOfWeek.value)
+  return end.setDate(end.getDate() + 6)
+})
+
+const weekDays = computed(() => {
+  const days = []
+  const labels = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche",]
+
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(startOfWeek.value)
+    date.setDate(date.getDate() + i)
+    days.push({ label: labels[i], date, })
+  }
+  return days
+})
+
+const selectedDayLabel = computed(() => new Intl.DateTimeFormat("fr-FR", { weekday: "long", }).format(selectedDay.value).toUpperCase())
+
+const getStartOfWeek = (date) => {
+  const newdate = new Date(date)
+  const day = newdate.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+
+  newdate.setDate(newdate.getDate() + diff)
+  newdate.setHours(0, 0, 0, 0)
+
+  return newdate
+}
+
+const nextWeek = () => {
+  const date = new Date(currentDate.value)
+
+  date.setDate(date.getDate() + 7)
+  currentDate.value = date
+}
+
+const previousWeek = () => {
+  const date = new Date(currentDate.value)
+
+  date.setDate(date.getDate() - 7)
+  currentDate.value = date
+}
+
+const selectDay = (date) => selectedDay.value = new Date(date)
+
+const isSelected = (date) => (selectedDay.value.toDateString() === new Date(date).toDateString())
+
+const formatDate = (date) => {
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date)
+}
+const formatDay = (date) => {
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "short",
+  }).format(date)
+}
+
+const getSessionsForDay = (date) => {
+  return filteredSessions.value.filter(session => {
+    if (session.special){
+      return session.dates.some(newDate => new Date(newDate).toDateString() === new Date(date).toDateString())
     }
+    return isRecurringSessionOnDate(session, date)
   })
+}
 
-  const currentDate = ref(new Date())
-  const selectedDay = ref(new Date())
-  const selectedTags = ref([])
+const getSessionCountForDay = (date) => getSessionsForDay(date).length
 
-  const startOfWeek = computed(() => getStartOfWeek(currentDate.value))
+const filteredSessions = computed(() => {
+  if (selectedTags.value.length === 0) {
+    return props.sessions
+  }
+  return props.sessions.filter(session => session.tags?.some(tag => selectedTags.value.includes(tag)))
+})
 
-  const endOfWeek = computed(() => {
-    const end = new Date(startOfWeek.value)
-    return end.setDate(end.getDate() + 6)
-  })
+const emit = defineEmits(['update'])
 
-  const weekDays = computed(() => {
-    const days = []
-    const labels = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche",]
-
-    for(let i = 0; i < 7; i++){
-      const date = new Date(startOfWeek.value)
-      date.setDate(date.getDate() + i)
-      days.push({label: labels[i],date,})
-    }
-    return days
-  })
-
-  const selectedDayLabel = computed(() => new Intl.DateTimeFormat("fr-FR", {weekday: "long",}).format(selectedDay.value).toUpperCase())
-
-  const getStartOfWeek = (date) => {
-    const newdate = new Date(date)
-    const day = newdate.getDay()
-    const diff = day === 0 ? -6 : 1 - day
-
-    newdate.setDate(newdate.getDate() + diff)
-    newdate.setHours(0, 0, 0, 0)
-
-    return newdate
+const isRecurringSessionOnDate = (session, date) => {
+  if (!session.day || !session.frequency) {
+    return false
   }
 
-  const nextWeek = () => {
-    const date = new Date(currentDate.value)
+  const targetDate = new Date(date)
 
-    date.setDate(date.getDate() + 7)
-    currentDate.value = date
+  if (targetDate.getDay() !== dayMap[session.day]) {
+    return false
   }
 
-  const previousWeek = () => {
-    const date = new Date(currentDate.value)
-    
-    date.setDate(date.getDate() - 7)
-    currentDate.value = date
-  }
+  const firstDayOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1)
+  const weekNumber = Math.floor((targetDate.getDate() - 1) / 7)
 
-  const selectDay = (date) => selectedDay.value = new Date(date)
+  return weekNumber % session.frequency === 0
+}
 
-  const isSelected = (date) => (selectedDay.value.toDateString() === new Date(date).toDateString())
+const availableTags = computed(() => {
+  return [...new Set(
+    props.sessions.flatMap(s => s.tags ?? [])
+  )].sort()
+})
 
-  const formatDate = (date) => {
-    return new Intl.DateTimeFormat("fr-FR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).format(date)
-  }
-  const formatDay = (date) => {
-    return new Intl.DateTimeFormat("fr-FR", {
-      day: "numeric",
-      month: "short",
-    }).format(date)
-  }
-
-  const getSessionsForDay = (date) => {
-    return filteredSessions.value.filter(session => session.dates.some(newDate => new Date(newDate).toDateString() === new Date(date).toDateString()))
-  }
-
-  const getSessionCountForDay = (date) => getSessionsForDay(date).length
-  
-  const filteredSessions = computed(() => {
-    if(selectedTags.value.length === 0){
-      return props.sessions
-    }
-    return props.sessions.filter(session => session.tags?.some(tag => selectedTags.value.includes(tag)))
-  })
 </script>
 
 <style>
-  .days{
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 10px;
-    padding: 10px;
-    padding-top: 20px;
-    padding-bottom: 0;
-    justify-content: center;
-    scrollbar-width: none;
-    touch-action: none;
-  }
+.days {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  padding: 10px;
+  padding-top: 20px;
+  padding-bottom: 0;
+  justify-content: center;
+  scrollbar-width: none;
+  touch-action: none;
+}
 
-  .days::-webkit-scrollbar{
-    display: none;
-  }
+.days::-webkit-scrollbar {
+  display: none;
+}
 
-  .days button{
-    flex: 1 1 clamp(60px, 10vw, 100px);
-    aspect-ratio: 1 / 1;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-  }
+.days button {
+  flex: 1 1 clamp(60px, 10vw, 100px);
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
 
-  h2{
-    margin-top: 0;
-  }
+h2 {
+  margin-top: 0;
+}
+
+.weeks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px;
+}
+
+.weeks span {
+  text-align: center;
+}
+
+.weeks button {
+  width: 35px;
+  height: 35px;
+  border-radius: 8px;
+}
 </style>

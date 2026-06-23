@@ -1,37 +1,57 @@
 [
   {
+    "id": "64A4",
     "title": "Donjons&Dragons",
     "info": "La Malédiction de Strahd.",
     "gameMaster": "Enzo",
     "image": "src/images/dnd.jpg",
     "dates": ["2026-05-20","2026-05-27","2026-06-03"],
+    "location": "Bat C",
+    "time": "20:00",
+    "players": 0,
+    "maxPlayers": 5,
     "tags": ["DnD","Vampire","Strahd"],
     "special": true
   },
   {
+    "id": "B1A4",
     "title": "D&D 5e — Malédiction de Strahd",
     "info": "La Malédiction de Strahd.",
     "gameMaster": "@vilooking",
     "image": "src/images/dnd.jpg",
     "dates": ["2026-05-05","2026-05-12","2026-05-19","2026-05-26","2026-06-02","2026-06-09","2026-06-16","2026-06-23"],
+    "location": "Distanciel",
+    "time": "21:30",
+    "players": 10,
+    "maxPlayers": 10,
     "tags": ["DnD","Vampire","Strahd"],
     "special": false
   },
   {
+    "id": "6ED4",
     "title": "Dark Heresy",
     "info": "Gros marteaux et gros fusils pew pew.",
     "gameMaster": "Yvan",
     "image": "src/images/darkheresy.jpg",
     "dates": ["2026-05-06","2026-05-13","2026-05-20","2026-05-27","2026-06-03","2026-06-10","2026-06-17","2026-06-24"],
     "tags": ["Dark","Heresy","Warhammer"],
+    "location": "Bat K",
+    "time": "10:30",
+    "players": 2,
+    "maxPlayers": 4,
     "special": false
   },
   {
+    "id": "6647",
     "title": "Special Dark Heresy",
     "info": "Gros marteaux et gros fusils pew pew car c'est trop dark.",
     "gameMaster": "Dark Yvan",
     "image": "src/images/darkheresy.jpg",
     "dates": ["2026-06-08"],
+    "location": "Bat C",
+    "time": "19:30",
+    "players": 4,
+    "maxPlayers": 6,
     "tags": ["Dark","Heresy","Warhammer"],
     "special": true
   }
