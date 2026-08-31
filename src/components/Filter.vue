@@ -43,7 +43,7 @@ watch(selectedTags, () => {
 .tags button {
   padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s ease;

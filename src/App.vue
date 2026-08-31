@@ -284,7 +284,7 @@ const login = async () => {
 <style>
 
 html {
-  background: #003049;
+  background: var(--color-bg);
 }
 * {
   font-family: "PixelMono", monospace;
@@ -302,11 +302,16 @@ header {
 }
 
 main {
-  background: #003049;
+  background: var(--color-bg);
   display: flex;
   justify-content: center;
   padding: 40px;
 
+}
+
+.content-wrapper {
+  width: 100%;
+  min-width: 0;
 }
 
 footer {
@@ -314,7 +319,7 @@ footer {
 }
 
 .page {
-  background: #f35b04;
+  background: var(--color-primary);
   max-width: 1100px;
   margin: 0 auto;
   border-radius: 20px;
@@ -328,7 +333,7 @@ footer {
 button.active {
   transition: 0.2s;
   background: black;
-  color: #f18701;
+  color: var(--color-accent);
 
 }
 
@@ -370,7 +375,7 @@ button:hover {
 
 
 .title-box {
-  background: #f35b04;
+  background: var(--color-primary);
   max-width: 1100px;
   margin: 0 auto 20px;
   border-radius: 20px;
@@ -379,10 +384,52 @@ button:hover {
   position: relative;
   z-index: 1;
   text-align: center;
+  overflow: hidden;
+}
+
+.title-box::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 90%;
+  height: 140px;
+  max-width: 800px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse, rgba(255, 224, 168, 0.55) 0%, rgba(255, 224, 168, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .title-box h1 {
   margin: 0;
-  font-size: 4vw;
+  font-size: clamp(1.5rem, 4vw, 2.75rem);
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 640px) {
+  main {
+    padding: 16px;
+  }
+
+  .page {
+    padding: 20px;
+    border-radius: 14px;
+  }
+
+  .title-box {
+    padding: 16px 20px;
+    border-radius: 14px;
+  }
+
+  .title-box::before {
+    height: 90px;
+  }
+
+  .top-bar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
 }
 </style>

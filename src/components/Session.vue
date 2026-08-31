@@ -136,12 +136,12 @@ const save = (session) => {
 }
 
 .session-card {
-  background: #fcbf49;
+  background: var(--color-tertiary);
 }
 
 .special-card {
   margin-top: 0;
-  background: #f77f00;
+  background: var(--color-secondary);
 }
 
 .session-top {
@@ -179,7 +179,7 @@ img {
 }
 
 .tag {
-  background: #444;
+  background: var(--color-muted);
   color: white;
   padding: 4px 10px;
   border-radius: 999px;
@@ -187,19 +187,40 @@ img {
 }
 
 .tag.empty {
-  background: #68ce6d;
+  background: var(--color-success);
 }
 
 .tag.mid {
-  background: #ee963e;
+  background: var(--color-warning);
 }
 
 .tag.full {
-  background: #e63d3d;
+  background: var(--color-danger);
 }
 
 .session-id{
   opacity: 50%;
   margin: 0;
+}
+
+@media (max-width: 640px) {
+  .session-card,
+  .special-card {
+    width: 100%;
+    padding: 14px;
+    margin: 20px auto;
+  }
+
+  .session-top {
+    flex-direction: column;
+  }
+
+  .content {
+    padding-right: 0;
+  }
+
+  img {
+    width: 100%;
+  }
 }
 </style>

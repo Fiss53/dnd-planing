@@ -201,8 +201,10 @@ const availableTags = computed(() => {
   padding-top: 20px;
   padding-bottom: 0;
   justify-content: center;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
   scrollbar-width: none;
-  touch-action: none;
+  touch-action: pan-x;
   font-size: max(16px, 1vw);
 }
 
@@ -220,6 +222,17 @@ const availableTags = computed(() => {
   justify-content: center;
   align-items: center;
   text-align: center;
+}
+
+@media (max-width: 640px) {
+  .days {
+    justify-content: flex-start;
+  }
+
+  .days button {
+    flex: 0 0 78px;
+    scroll-snap-align: start;
+  }
 }
 
 h2 {

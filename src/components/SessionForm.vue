@@ -277,15 +277,15 @@ const toggleTag = (tag) => {
 
 <style scoped>
 .session-form {
-  background: #f18701;
+  background: var(--color-accent);
   padding: 20px;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
 
 .error-message {
-  background: #ffe5e5;
-  color: #b00020;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
   padding: 10px;
   border-radius: 10px;
   margin-bottom: 15px;
@@ -306,8 +306,15 @@ const toggleTag = (tag) => {
 input, textarea, select {
   padding: 8px;
   border-radius: 10px;
-  background: #f7b801;
-  border: 1px solid #ddd;
+  background: var(--color-input-bg);
+  border: 2px solid var(--color-border-strong);
+}
+
+button {
+  border: 2px solid var(--color-border-strong);
+  border-radius: 10px;
+  padding: 6px 12px;
+  cursor: pointer;
 }
 
 .block {
@@ -327,7 +334,7 @@ input, textarea, select {
 }
 
 .chip {
-  background: #eee;
+  background: var(--color-muted-light);
   padding: 5px 10px;
   border-radius: 999px;
   display: flex;
@@ -335,14 +342,20 @@ input, textarea, select {
   align-items: center;
 }
 
+.chip button {
+  border: none;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  font-weight: bold;
+  line-height: 1;
+}
+
 .save-btn {
   margin-top: 15px;
-  background: #f77f00;
+  background: var(--color-secondary);
   color: white;
   padding: 10px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
 }
 
 .field {
@@ -370,9 +383,32 @@ input, textarea, select {
 }
 
 .checkbox-field input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
   width: 18px;
   height: 18px;
+  margin: 0;
+  background: var(--color-input-bg);
+  border: 2px solid var(--color-border-strong);
+  border-radius: 4px;
   cursor: pointer;
+  position: relative;
+}
+
+.checkbox-field input[type="checkbox"]:checked {
+  background: var(--color-secondary);
+}
+
+.checkbox-field input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 4px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .checkbox-field label {
@@ -388,21 +424,34 @@ input, textarea, select {
 }
 
 .tag-btn {
-  border: 1px solid #ddd;
-  background: white;
+  border: 2px solid var(--color-border-strong);
+  background: var(--color-input-bg);
   border-radius: 999px;
-  padding: 6px 12px;
-  cursor: pointer;
   transition: 0.2s;
 }
 
 .tag-btn:hover {
-  background: #f5f5f5;
+  background: color-mix(in srgb, var(--color-input-bg), black 12%);
 }
 
 .tag-btn.selected {
-  background: #f77f00;
+  background: var(--color-secondary);
   color: white;
-  border-color: #f77f00;
+  border-color: var(--color-secondary);
+}
+
+@media (max-width: 640px) {
+  .session-form {
+    padding: 14px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grid textarea,
+  .field-full {
+    grid-column: span 1;
+  }
 }
 </style>
