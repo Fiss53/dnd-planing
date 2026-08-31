@@ -41,6 +41,7 @@
 <script setup>
 import { ref } from 'vue'
 import SessionForm from './SessionForm.vue'
+import "../stylemain.css"
 
 const props = defineProps({
   id: String,
@@ -117,6 +118,8 @@ const save = (session) => {
   flex: 1;
   text-align: left;
   padding-right: 30px;
+  font-family: "PixelMono", Monospace;
+
 }
 
 .session-card,

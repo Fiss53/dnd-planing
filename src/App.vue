@@ -3,60 +3,74 @@
     <template #header>
     </template>
     <template #main>
-      <div class="page">
-        <div class="top-bar">
+      <iframe
+          src="/ascii-d20-rapier.html"
+          class="dice-iframe"
+      />
+
+      <div class="content-wrapper">
+        <div class="title-box">
           <h1>Calendrier Lune Rousse</h1>
-          <div v-if="!isLoggedIn">
-            <input v-model="passwordInput" type="password" placeholder="Mot de passe" />
-            <button  @click="login">Login</button>
-          </div>
-          <div v-else>
-            <button  @click="logout">Logout</button>
-          </div>
         </div>
-        <p>Infos coulos</p>
-        <hr v-if="isLoggedIn">
-        <div v-if="isLoggedIn" class="create-form">
-          <SessionForm
-            v-model="newSession"
-            :available-tags="availableTags"
-            @save="createSession"
-          />
-        </div>
-        <hr>
-        <h2>Sessions Spéciales</h2>
-        <div v-if="getSpecialSessions().length == 0">
-          <p>Aucune sessions spéciales :(</p>
-        </div>
-        <div v-else>
-          <div v-for="session in getSpecialSessions()" :key="session.id">
-            <div class="next-date">
-              {{ formatShortDate(getFirstSpecialDate(session)) }}
+        <div class="page">
+
+          <div class="top-bar">
+            <div v-if="!isLoggedIn">
+              <input
+                  v-model="passwordInput"
+                  type="password"
+                  placeholder="Mot de passe"
+                  class="login-font"
+              />
+              <button @click="login" class="login-font">Login</button>
             </div>
-            <Session
-              :id="session.id"
-              :title="session.title"
-              :info="session.info"
-              :game-master="session.gameMaster"
-              :image="session.image"
-              :dates="session.dates"
-              :day="session.day"
-              :frequency="session.frequency"
-              :location="session.location"
-              :time="session.time"
-              :players="session.players"
-              :max-players="session.maxPlayers"
-              :tags="session.tags"
-              :special="session.special"
-              :can-edit="isLoggedIn"
-              :available-tags="availableTags"
-              @update="updateSession"
+            <div v-else>
+              <button  @click="logout" class="login-font">Logout</button>
+            </div>
+          </div>
+          <hr v-if="isLoggedIn">
+          <div v-if="isLoggedIn" class="create-form">
+            <SessionForm
+                v-model="newSession"
+                :available-tags="availableTags"
+                @save="createSession"
             />
           </div>
+          <h2>Sessions Spéciales</h2>
+          <div v-if="getSpecialSessions().length == 0">
+            <p>Aucune sessions spéciales :(</p>
+          </div>
+          <div v-else>
+            <div v-for="session in getSpecialSessions()" :key="session.id">
+              <div class="next-date">
+                {{ formatShortDate(getFirstSpecialDate(session)) }}
+              </div>
+              <Session
+                  :id="session.id"
+                  :title="session.title"
+                  :info="session.info"
+                  :game-master="session.gameMaster"
+                  :image="session.image"
+                  :dates="session.dates"
+                  :day="session.day"
+                  :frequency="session.frequency"
+                  :location="session.location"
+                  :time="session.time"
+                  :players="session.players"
+                  :max-players="session.maxPlayers"
+                  :tags="session.tags"
+                  :special="session.special"
+                  :can-edit="isLoggedIn"
+                  :available-tags="availableTags"
+                  @update="updateSession"
+              />
+            </div>
+          </div>
+          <hr>
+          <Calendar :sessions="sessionsComputed" :can-edit="isLoggedIn" @update="updateSession"/>
         </div>
-        <hr>
-        <Calendar :sessions="sessionsComputed" :can-edit="isLoggedIn" @update="updateSession"/>
       </div>
+
     </template>
     <template #footer>
       <hr>
@@ -75,6 +89,7 @@ import SessionForm from "./components/SessionForm.vue";
 import initialSessions from './data/sessions.json';
 
 import { onMounted } from "vue"
+import "./stylemain.css"
 
 onMounted(() => {
   loadSessions()
@@ -241,6 +256,8 @@ const loadSessions = async () => {
 }
 
 const login = async () => {
+  //TODO fix this later on
+  isLoggedIn.value = true
   if (!passwordInput.value) return
 
   const res = await fetch("http://localhost:3000/login", {
@@ -265,11 +282,15 @@ const login = async () => {
 </script>
 
 <style>
+
 html {
   background: #003049;
 }
-
+* {
+  font-family: "PixelMono", monospace;
+}
 body {
+  font-size: max(16px, 1vw);
   margin: 0;
   min-height: 100vh;
   display: flex;
@@ -285,6 +306,7 @@ main {
   display: flex;
   justify-content: center;
   padding: 40px;
+
 }
 
 footer {
@@ -292,18 +314,22 @@ footer {
 }
 
 .page {
-  background: #eae2b7;
+  background: #f35b04;
   max-width: 1100px;
   margin: 0 auto;
   border-radius: 20px;
   padding: 40px;
   box-shadow: 0 10px 50px rgba(0, 0, 0, 0.7);
+  position: relative;
+  z-index: 1;
+
 }
 
 button.active {
   transition: 0.2s;
   background: black;
-  color: white;
+  color: #f18701;
+
 }
 
 button:hover {
@@ -311,6 +337,7 @@ button:hover {
 }
 
 .top-bar {
+
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -326,5 +353,36 @@ button:hover {
   font-weight: 600;
   opacity: 0.8;
   font-size: 7mm;
+}
+
+
+
+
+.dice-iframe {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  border: none;
+}
+
+
+
+.title-box {
+  background: #f35b04;
+  max-width: 1100px;
+  margin: 0 auto 20px;
+  border-radius: 20px;
+  padding: 25px 40px;
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.7);
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.title-box h1 {
+  margin: 0;
+  font-size: 4vw;
 }
 </style>

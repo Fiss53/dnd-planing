@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>ASCII D20</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; overflow: hidden; }
+    </style>
+</head>
+<body>
+<script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.148.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.148.0/examples/jsm/"
+      }
+    }
+</script>
+<script type="module">
+    import * as THREE from 'three';
+    import { AsciiEffect } from 'three/addons/effects/AsciiEffect.js';
+
+    // ── Config ────────────────────────────────────────────────────────────────────
+    const R           = 52;
+    const GROUND_Y    = -200;
+    const SPAWN_Y     = 700;
+    const SPREAD_Z    = 200;
+    const GRAVITY     = 0.055;
+    const RESTITUTION = 0.28;
+    const FRICTION    = 0.80;
+    const AIR_DRAG    = 0.994;
+    const TORQUE      = 0.038;
+    const SPAWN_MS    = 800;
+    const MAX_DICE    = 120;
+
+    // Colonnes en pourcentage de l'écran (0.0 = bord gauche, 1.0 = bord droit)
+    const COLUMN_LEFT_PCT  = 0.15; // 1/4 gauche
+    const COLUMN_RIGHT_PCT = 0.85; // 3/4 droite
+    const COLUMN_W_PCT     = 0.08; // largeur de dispersion = 8% de l'écran
+
+    // ── Scene ─────────────────────────────────────────────────────────────────────
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0, 0, 0);
+    scene.fog = new THREE.FogExp2(0x000000, 0.00055);
+
+    const camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 1, 4000);
+    camera.position.set(0, 120, 820);
+    camera.lookAt(0, 0, 0);
+
+    // Calcule la largeur visible en unités 3D au plan Z=0 depuis la caméra
+    function screenWidth3D() {
+        const dist = camera.position.z; // distance caméra → Z=0
+        const vFOV = THREE.MathUtils.degToRad(camera.fov);
+        const height3D = 2 * Math.tan(vFOV / 2) * dist;
+        return height3D * camera.aspect;
+    }
+
+    // Convertit un pourcentage écran (0–1) en unité X 3D (centré sur 0)
+    function pctToX(pct) {
+        return (pct - 0.5) * screenWidth3D();
+    }
+
+    // Lights
+    const kl = new THREE.PointLight(0xffffff, 5, 0, 0);
+    kl.position.set(500, 600, 400);
+    scene.add(kl);
+    const fl = new THREE.PointLight(0xffffff, 1.8, 0, 0);
+    fl.position.set(-500, -400, -400);
+    scene.add(fl);
+    const dl = new THREE.DirectionalLight(0xffffff, 0.7);
+    dl.position.set(0, 1, -1);
+    scene.add(dl);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.15));
+
+    // Ground
+    const ground = new THREE.Mesh(
+        new THREE.PlaneGeometry(3000, 3000),
+        new THREE.MeshBasicMaterial({ color: 0x080808 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = GROUND_Y;
+    scene.add(ground);
+
+    // ── Renderer + ASCII ──────────────────────────────────────────────────────────
+    const renderer = new THREE.WebGLRenderer({ antialias: false });
+    renderer.setSize(innerWidth, innerHeight);
+
+    const effect = new AsciiEffect(renderer, ' .:;+=xX$&#@', { invert: true, resolution: 0.19 });
+    effect.setSize(innerWidth, innerHeight);
+    Object.assign(effect.domElement.style, {
+        color: 'white',
+        backgroundColor: 'black',
+        position: 'fixed',
+        top: '0',
+        left: '0'
+    });
+    document.body.appendChild(effect.domElement);
+
+    window.addEventListener('resize', () => {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+        effect.setSize(innerWidth, innerHeight);
+    });
+
+    // ── Shared geometry + materials ───────────────────────────────────────────────
+    const GEO = new THREE.IcosahedronGeometry(R, 0);
+    const MATS = [
+        new THREE.MeshPhongMaterial({ flatShading: true, color: 0xffffff }),
+        new THREE.MeshPhongMaterial({ flatShading: true, color: 0xe0e0e0 }),
+        new THREE.MeshPhongMaterial({ flatShading: true, color: 0xcccccc }),
+    ];
+
+    // ── Physics state ─────────────────────────────────────────────────────────────
+    const dice = [];
+    let spawnToggle = 0;
+
+    function spawnDie() {
+        if (dice.length >= MAX_DICE) return;
+
+        const side = spawnToggle % 2 === 0 ? COLUMN_LEFT_PCT : COLUMN_RIGHT_PCT;
+        spawnToggle++;
+
+        const centerX = pctToX(side);
+        const halfW   = pctToX(0.5 + COLUMN_W_PCT / 2) - pctToX(0.5); // largeur en unités 3D
+
+        const mesh = new THREE.Mesh(GEO, MATS[dice.length % MATS.length]);
+        mesh.position.set(
+            centerX + (Math.random() - 0.5) * halfW * 2,
+            SPAWN_Y,
+            (Math.random() - 0.5) * SPREAD_Z
+        );
+        mesh.rotation.set(
+            Math.random() * Math.PI * 2,
+            Math.random() * Math.PI * 2,
+            Math.random() * Math.PI * 2
+        );
+        scene.add(mesh);
+
+        dice.push({
+            mesh,
+            vx: (Math.random() - 0.5) * 0.4,
+            vy: -(0.1 + Math.random() * 0.1),
+            vz: (Math.random() - 0.5) * 0.3,
+            rx: (Math.random() - 0.5) * TORQUE,
+            ry: (Math.random() - 0.5) * TORQUE,
+            rz: (Math.random() - 0.5) * TORQUE,
+            sleeping: false,
+        });
+    }
+
+    // ── Sphere-sphere collision ───────────────────────────────────────────────────
+    function resolveCollision(a, b) {
+        const dx = b.mesh.position.x - a.mesh.position.x;
+        const dy = b.mesh.position.y - a.mesh.position.y;
+        const dz = b.mesh.position.z - a.mesh.position.z;
+        const dist2 = dx * dx + dy * dy + dz * dz;
+        const minDist = R * 2;
+        if (dist2 >= minDist * minDist || dist2 < 0.001) return;
+
+        const dist = Math.sqrt(dist2);
+        const overlap = (minDist - dist) * 0.5;
+        const nx = dx / dist, ny = dy / dist, nz = dz / dist;
+
+        const massA = a.sleeping ? 5 : 1;
+        const massB = b.sleeping ? 5 : 1;
+        const total = massA + massB;
+
+        if (!a.sleeping) {
+            a.mesh.position.x -= nx * overlap * (massB / total);
+            a.mesh.position.y -= ny * overlap * (massB / total);
+            a.mesh.position.z -= nz * overlap * (massB / total);
+        }
+        if (!b.sleeping) {
+            b.mesh.position.x += nx * overlap * (massA / total);
+            b.mesh.position.y += ny * overlap * (massA / total);
+            b.mesh.position.z += nz * overlap * (massA / total);
+        }
+
+        const rvx = a.vx - b.vx;
+        const rvy = a.vy - b.vy;
+        const rvz = a.vz - b.vz;
+        const relVelN = rvx * nx + rvy * ny + rvz * nz;
+        if (relVelN > 0) return;
+
+        const j = -(1 + RESTITUTION) * relVelN / 2;
+
+        if (!a.sleeping) {
+            a.vx += j * nx; a.vy += j * ny; a.vz += j * nz;
+            a.vx *= FRICTION; a.vz *= FRICTION;
+            a.rx += (Math.random() - 0.5) * 0.005;
+            a.ry += (Math.random() - 0.5) * 0.005;
+            a.sleeping = false;
+        }
+        if (!b.sleeping) {
+            b.vx -= j * nx; b.vy -= j * ny; b.vz -= j * nz;
+            b.vx *= FRICTION; b.vz *= FRICTION;
+            b.rx += (Math.random() - 0.5) * 0.005;
+            b.ry += (Math.random() - 0.5) * 0.005;
+            b.sleeping = false;
+        }
+    }
+
+    // ── Step physics ──────────────────────────────────────────────────────────────
+    function stepPhysics() {
+        const n = dice.length;
+
+        for (let i = 0; i < n; i++) {
+            const d = dice[i];
+            if (d.sleeping) continue;
+
+            d.vy -= GRAVITY;
+            d.mesh.position.x += d.vx;
+            d.mesh.position.y += d.vy;
+            d.mesh.position.z += d.vz;
+            d.mesh.rotation.x += d.rx;
+            d.mesh.rotation.y += d.ry;
+            d.mesh.rotation.z += d.rz;
+            d.vx *= AIR_DRAG;
+            d.vz *= AIR_DRAG;
+
+            const floor = GROUND_Y + R;
+            if (d.mesh.position.y < floor) {
+                d.mesh.position.y = floor;
+                d.vy = -d.vy * RESTITUTION;
+                d.vx *= FRICTION;
+                d.vz *= FRICTION;
+                d.rx *= 0.6; d.ry *= 0.6; d.rz *= 0.6;
+            }
+
+            const spd2 = d.vx*d.vx + d.vy*d.vy + d.vz*d.vz;
+            const spn2 = d.rx*d.rx + d.ry*d.ry + d.rz*d.rz;
+            if (spd2 < 0.06 && spn2 < 0.00002) {
+                d.vx = d.vy = d.vz = d.rx = d.ry = d.rz = 0;
+                d.sleeping = true;
+            }
+        }
+
+        for (let i = 0; i < n; i++) {
+            for (let j = i + 1; j < n; j++) {
+                const a = dice[i], b = dice[j];
+                if (a.sleeping && b.sleeping) continue;
+                const dx = b.mesh.position.x - a.mesh.position.x;
+                const dy = b.mesh.position.y - a.mesh.position.y;
+                const dz = b.mesh.position.z - a.mesh.position.z;
+                if (Math.abs(dx) > R*2.1 || Math.abs(dy) > R*2.1 || Math.abs(dz) > R*2.1) continue;
+                resolveCollision(a, b);
+            }
+        }
+    }
+
+    // ── Main loop ─────────────────────────────────────────────────────────────────
+    let lastSpawn = 0;
+    function animate() {
+        requestAnimationFrame(animate);
+        const now = performance.now();
+        if (now - lastSpawn > SPAWN_MS && dice.length < MAX_DICE) {
+            spawnDie();
+            lastSpawn = now;
+        }
+        stepPhysics();
+        effect.render(scene, camera);
+    }
+    animate();
+</script>
+</body>
+</html>

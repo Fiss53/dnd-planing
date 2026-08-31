@@ -10,11 +10,11 @@
     </div>
     <div class="grid">
       <div class="field">
-        <label>Titre</label>
+        <label>Titre *</label>
         <input v-model="model.title" placeholder="Titre" />
       </div>
       <div class="field">
-        <label>Maître du jeu</label>
+        <label>Maître du jeu *</label>
         <input v-model="model.gameMaster" placeholder="Maître du jeu" />
       </div>
       <div class="field">
@@ -22,11 +22,11 @@
         <input v-model="model.image" placeholder="URL image" />
       </div>
       <div class="field field-full">
-        <label>Description</label>
+        <label>Description *</label>
         <textarea v-model="model.info" placeholder="Description de la session"></textarea>
       </div>
       <div class="field">
-        <label>Lieu</label>
+        <label>Lieu *</label>
         <select v-model="model.location">
           <option disabled value="">Choisir un lieu</option>
           <option>Bat C</option>
@@ -35,15 +35,15 @@
         </select>
       </div>
       <div class="field">
-        <label>Heure</label>
+        <label>Heure *</label>
         <input v-model="model.time" type="time" />
       </div>
       <div class="field">
-        <label>Joueurs inscrits</label>
+        <label>Joueurs inscrits *</label>
         <input v-model.number="model.players" type="number" min="0" :max="model.maxPlayers" />
       </div>
       <div class="field">
-        <label>Nombre max de joueurs</label>
+        <label>Nombre max de joueurs *</label>
         <input v-model.number="model.maxPlayers" type="number" min="1" placeholder="1" />
       </div>
     </div>
@@ -62,7 +62,7 @@
         </div>
       </div>
       <div v-else>
-        <h3>Récurrence</h3>
+        <h4>Récurrence</h4>
         <label>Jour de la session</label>
         <select v-model="model.day">
           <option value="">Choisir un jour</option>
@@ -277,7 +277,7 @@ const toggleTag = (tag) => {
 
 <style scoped>
 .session-form {
-  background: white;
+  background: #f18701;
   padding: 20px;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.15);
@@ -306,6 +306,7 @@ const toggleTag = (tag) => {
 input, textarea, select {
   padding: 8px;
   border-radius: 10px;
+  background: #f7b801;
   border: 1px solid #ddd;
 }
 
@@ -348,6 +349,8 @@ input, textarea, select {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  font-family: "PixelMono", normal;
+
 }
 
 .field label {

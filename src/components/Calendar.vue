@@ -3,19 +3,13 @@
     <h2>Filtres :</h2>
     <Filter :sessions="sessions" @update:tags="selectedTags = $event" />
     <hr>
-    <div class="weeks">
-      <button @click="previousWeek"><</button>
-        <h3><b>Semaine du {{ formatDate(startOfWeek) }} au {{ formatDate(endOfWeek) }}</b></h3>
-      <button @click="nextWeek">></button>
-    </div>
+
+    <h2> Sessions Hebdomadaires</h2>
     <div class="days">
       <button v-for="day in weekDays" :key="day.date" :class="{ active: isSelected(day.date) }"
         @click="selectDay(day.date)">
         <div>
           {{ day.label }}
-        </div>
-        <div>
-          {{ formatDay(day.date) }}
         </div>
         <div v-if="getSessionCountForDay(day.date) == 1">
           {{ getSessionCountForDay(day.date) }} session
@@ -63,6 +57,7 @@
 import { ref, computed } from "vue"
 import Session from "./Session.vue"
 import Filter from "./Filter.vue"
+import "./../stylemain.css"
 
 const props = defineProps({
   sessions: Array,
@@ -197,6 +192,7 @@ const availableTags = computed(() => {
 </script>
 
 <style>
+
 .days {
   display: flex;
   flex-wrap: nowrap;
@@ -207,6 +203,7 @@ const availableTags = computed(() => {
   justify-content: center;
   scrollbar-width: none;
   touch-action: none;
+  font-size: max(16px, 1vw);
 }
 
 .days::-webkit-scrollbar {
@@ -214,6 +211,7 @@ const availableTags = computed(() => {
 }
 
 .days button {
+  font-size: max(16px, 1vw);
   flex: 1 1 clamp(60px, 10vw, 100px);
   aspect-ratio: 1 / 1;
   border-radius: 12px;
@@ -226,6 +224,7 @@ const availableTags = computed(() => {
 
 h2 {
   margin-top: 0;
+
 }
 
 .weeks {
@@ -234,6 +233,7 @@ h2 {
   justify-content: center;
   gap: 20px;
   padding: 10px;
+
 }
 
 .weeks span {
