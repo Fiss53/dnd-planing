@@ -106,7 +106,17 @@
     });
 
     // ── Shared geometry + materials ───────────────────────────────────────────────
-    const GEO = new THREE.IcosahedronGeometry(R, 0);
+    // Un type par forme de de native a Three.js (D4, D6, D8, D12, D20).
+    // Toutes sont dimensionnees pour avoir le meme rayon circonscrit R,
+    // afin que la physique (qui les traite comme des spheres) reste coherente.
+    const BOX_SIDE = (R * 2) / Math.sqrt(3); // cote du cube inscrit dans une sphere de rayon R
+    const GEOMETRIES = [
+        new THREE.TetrahedronGeometry(R, 0),               // D4
+        new THREE.BoxGeometry(BOX_SIDE, BOX_SIDE, BOX_SIDE), // D6
+        new THREE.OctahedronGeometry(R, 0),                // D8
+        new THREE.DodecahedronGeometry(R, 0),              // D12
+        new THREE.IcosahedronGeometry(R, 0),               // D20
+    ];
     const MATS = [
         new THREE.MeshPhongMaterial({ flatShading: true, color: 0xffffff }),
         new THREE.MeshPhongMaterial({ flatShading: true, color: 0xe0e0e0 }),
@@ -126,7 +136,8 @@
         const centerX = pctToX(side);
         const halfW   = pctToX(0.5 + COLUMN_W_PCT / 2) - pctToX(0.5); // largeur en unités 3D
 
-        const mesh = new THREE.Mesh(GEO, MATS[dice.length % MATS.length]);
+        const geo = GEOMETRIES[Math.floor(Math.random() * GEOMETRIES.length)];
+        const mesh = new THREE.Mesh(geo, MATS[dice.length % MATS.length]);
         mesh.position.set(
             centerX + (Math.random() - 0.5) * halfW * 2,
             SPAWN_Y,
