@@ -6,7 +6,7 @@
     <title>ASCII D20</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #000; overflow: hidden; }
+        body { background: #003049; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -33,7 +33,7 @@
     const AIR_DRAG    = 0.994;
     const TORQUE      = 0.038;
     const SPAWN_MS    = 800;
-    const MAX_DICE    = 120;
+    const MAX_DICE    = 70;
 
     // Colonnes en pourcentage de l'écran (0.0 = bord gauche, 1.0 = bord droit)
     const COLUMN_LEFT_PCT  = 0.15; // 1/4 gauche
@@ -41,9 +41,12 @@
     const COLUMN_W_PCT     = 0.08; // largeur de dispersion = 8% de l'écran
 
     // ── Scene ─────────────────────────────────────────────────────────────────────
+    // Meme bleu nuit que --color-bg dans stylemain.css, pour que le fond de l'effet
+    // se fonde avec le reste du site plutot que d'etre un rectangle noir.
+    const BG_COLOR = 0x003049;
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0, 0, 0);
-    scene.fog = new THREE.FogExp2(0x000000, 0.00055);
+    scene.background = new THREE.Color(BG_COLOR);
+    scene.fog = new THREE.FogExp2(BG_COLOR, 0.00055);
 
     const camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 1, 4000);
     camera.position.set(0, 120, 820);
@@ -77,7 +80,7 @@
     // Ground
     const ground = new THREE.Mesh(
         new THREE.PlaneGeometry(3000, 3000),
-        new THREE.MeshBasicMaterial({ color: 0x080808 })
+        new THREE.MeshBasicMaterial({ color: 0x001521 })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = GROUND_Y;
@@ -87,11 +90,13 @@
     const renderer = new THREE.WebGLRenderer({ antialias: false });
     renderer.setSize(innerWidth, innerHeight);
 
-    const effect = new AsciiEffect(renderer, ' .:;+=xX$&#@', { invert: true, resolution: 0.19 });
+    // resolution abaissee par rapport a la version sans couleur : le mode couleur
+    // recalcule une teinte par caractere a chaque frame, donc moins de cellules = plus fluide.
+    const effect = new AsciiEffect(renderer, ' .:;+=xX$&#@', { invert: true, resolution: 0.13, color: true });
     effect.setSize(innerWidth, innerHeight);
     Object.assign(effect.domElement.style, {
         color: 'white',
-        backgroundColor: 'black',
+        backgroundColor: '#003049',
         position: 'fixed',
         top: '0',
         left: '0'
@@ -117,10 +122,12 @@
         new THREE.DodecahedronGeometry(R, 0),              // D12
         new THREE.IcosahedronGeometry(R, 0),               // D20
     ];
+    // Meme palette chaude que le reste du site (voir :root dans stylemain.css).
     const MATS = [
-        new THREE.MeshPhongMaterial({ flatShading: true, color: 0xffffff }),
-        new THREE.MeshPhongMaterial({ flatShading: true, color: 0xe0e0e0 }),
-        new THREE.MeshPhongMaterial({ flatShading: true, color: 0xcccccc }),
+        new THREE.MeshPhongMaterial({ flatShading: true, color: 0xf35b04 }), // --color-primary
+        new THREE.MeshPhongMaterial({ flatShading: true, color: 0xf77f00 }), // --color-secondary
+        new THREE.MeshPhongMaterial({ flatShading: true, color: 0xfcbf49 }), // --color-tertiary
+        new THREE.MeshPhongMaterial({ flatShading: true, color: 0xf18701 }), // --color-accent
     ];
 
     // ── Physics state ─────────────────────────────────────────────────────────────
