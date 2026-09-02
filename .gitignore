@@ -39,3 +39,6 @@ __screenshots__/
 *.timestamp-*-*.mjs
 
 .env
+
+# Backend PHP : contient les identifiants DB + le hash du mot de passe admin
+backend/config.php

@@ -33,7 +33,7 @@
     const AIR_DRAG    = 0.994;
     const TORQUE      = 0.038;
     const SPAWN_MS    = 800;
-    const MAX_DICE    = 70;
+    const MAX_DICE    = 120;
 
     // Colonnes en pourcentage de l'écran (0.0 = bord gauche, 1.0 = bord droit)
     const COLUMN_LEFT_PCT  = 0.15; // 1/4 gauche
@@ -90,12 +90,14 @@
     const renderer = new THREE.WebGLRenderer({ antialias: false });
     renderer.setSize(innerWidth, innerHeight);
 
-    // resolution abaissee par rapport a la version sans couleur : le mode couleur
-    // recalcule une teinte par caractere a chaque frame, donc moins de cellules = plus fluide.
-    const effect = new AsciiEffect(renderer, ' .:;+=xX$&#@', { invert: true, resolution: 0.13, color: true });
+    // color:true recalcule une couleur par caractere a chaque frame (des milliers de
+    // noeuds DOM stylises individuellement) : c'est ce qui faisait ramer. On reste en
+    // mode rapide (texte brut) et on simule la teinte via une seule couleur CSS,
+    // appliquee une fois, sans cout par frame.
+    const effect = new AsciiEffect(renderer, ' .:;+=xX$&#@', { invert: true, resolution: 0.19 });
     effect.setSize(innerWidth, innerHeight);
     Object.assign(effect.domElement.style, {
-        color: 'white',
+        color: '#fcbf49',
         backgroundColor: '#003049',
         position: 'fixed',
         top: '0',

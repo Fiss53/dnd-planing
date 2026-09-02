@@ -4,7 +4,7 @@
     </template>
     <template #main>
       <iframe
-          src="/ascii-d20-rapier.html"
+          :src="`${diceBaseUrl}ascii-d20-rapier.html`"
           class="dice-iframe"
       />
 
@@ -91,6 +91,10 @@ import initialSessions from './data/sessions.json';
 import { onMounted } from "vue"
 import "./stylemain.css"
 
+// BASE_URL vaut "/" en dev et "/planning/" une fois compile (voir vite.config.js),
+// pour que l'iframe pointe toujours au bon endroit une fois deploye a cote de WordPress.
+const diceBaseUrl = import.meta.env.BASE_URL
+
 onMounted(() => {
   loadSessions()
 })
@@ -108,7 +112,11 @@ const passwordInput = ref("")
 const dateInput = ref("")
 const tagInput = ref("")
 
-const logout = () => {
+const logout = async () => {
+  await fetch(`${import.meta.env.VITE_API_URL}/logout`, {
+    method: "POST",
+    credentials: "include"
+  })
   isLoggedIn.value = false
 }
 
@@ -129,17 +137,6 @@ const newSession = ref({
   tags: [],
   special: false
 })
-
-const generateId = () => {
-  let id
-  let exists = true
-
-  while(exists){
-    id = Math.floor(Math.random() * 0xffff).toString(16).toUpperCase().padStart(4, "0")
-    exists = sessions.value.some(s => s.id === id)
-  }
-  return id
-}
 
 const emptySession = () => ({
   title: "",
@@ -209,6 +206,7 @@ const formatShortDate = (date) => {
 const updateSession = async (updatedSession) => {
   const res = await fetch(`${import.meta.env.VITE_API_URL}/sessions/${updatedSession.id}`, {
     method: "PUT",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json"
     },
@@ -224,17 +222,13 @@ const updateSession = async (updatedSession) => {
 }
 
 const createSession = async () => {
-  const session = {
-    ...newSession.value,
-    id: generateId()
-  }
-
   const res = await fetch(`${import.meta.env.VITE_API_URL}/sessions`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify(session)
+    body: JSON.stringify(newSession.value)
   })
 
   const savedSession = await res.json()
@@ -244,7 +238,9 @@ const createSession = async () => {
 }
 
 const loadSessions = async () => {
-  const res = await fetch("http://localhost:3000/sessions")
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/sessions`, {
+    credentials: "include"
+  })
   const data = await res.json()
 
   sessions.value = data.map(session => ({
@@ -256,12 +252,9 @@ const loadSessions = async () => {
 }
 
 const login = async () => {
-  //TODO fix this later on
-  isLoggedIn.value = true
-  if (!passwordInput.value) return
-
-  const res = await fetch("http://localhost:3000/login", {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json"
     },
